@@ -7,18 +7,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.Observer;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.huaguang.ringtonepicker.databinding.FragmentRingtoneDialogBinding;
 import com.permissionx.guolindev.PermissionX;
-
-import java.util.Objects;
 
 public class RingtoneDialogFragment extends BottomSheetDialogFragment {
 
@@ -82,7 +78,6 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
             /*----------------------------------进入系统铃声列表-----------------------------------------*/
             // 停止对话框内当前铃声的播放
             RingtoneControl.INSTANCE.stopRingtone();
-            Toast.makeText(getContext(), "此处厂商似乎做了限制，打开略有延迟", Toast.LENGTH_SHORT).show();
             // 打开铃声列表页（标记为系统）
             RingtoneListFragment fragment = RingtoneListFragment.newInstance("system");
             getParentFragmentManager().beginTransaction()

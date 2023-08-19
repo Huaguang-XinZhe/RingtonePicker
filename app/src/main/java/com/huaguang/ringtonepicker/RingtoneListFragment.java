@@ -11,14 +11,17 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.huaguang.ringtonepicker.databinding.FragmentRingtoneListBinding;
+
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class RingtoneListFragment extends Fragment implements RingtoneAdapter.OnItemClickListener {
 
@@ -93,34 +96,80 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
      */
     private List<Song> getSongs(String category) {
         List<Song> songsList = new ArrayList<>();
-        Cursor cursor;
+        Cursor cursor = null;
         ContentResolver resolver = requireContext().getContentResolver();
+        try {
+            if (category.equals("local")) {
+                // 使用投影来提高查询效率
+                String[] projection = {
+                        MediaStore.Audio.Media.TITLE,
+                        MediaStore.Audio.Media.ARTIST,
+                        MediaStore.Audio.Media._ID
+                };
 
-        if (category.equals("local")) {
-            // 本地歌曲
-            cursor = resolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    null, "artist!=?", new String[]{"<unknown>"}, null);
-            while (cursor.moveToNext()) {
-                String title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
-                String artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
-                long id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID));
-                Uri songUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
-                songsList.add(new Song(title, artist, songUri));
+                // 本地歌曲
+                cursor = resolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                        projection, "artist!=?", new String[]{"<unknown>"}, null);
+
+                if (cursor != null) {
+                    int titleIndex = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
+                    int artistIndex = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
+                    int idIndex = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID);
+
+                    while (cursor.moveToNext()) {
+                        String title = cursor.getString(titleIndex);
+                        String artist = cursor.getString(artistIndex);
+                        long id = cursor.getLong(idIndex);
+                        Uri songUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
+                        songsList.add(new Song(title, artist, songUri));
+                    }
+                }
+            } else if (category.equals("system")) {
+                // 系统铃声
+                RingtoneManager manager = new RingtoneManager(getContext());
+                cursor = manager.getCursor();
+
+                if (cursor != null) {
+                    while (cursor.moveToNext()) {
+                        int position = cursor.getPosition();
+                        // content://media/external/audio/media/76502?title=Daylight%20Dreaming&canonical=1
+                        Uri songUri = manager.getRingtoneUri(position);
+                        String title = getTitleFromUri(songUri);
+                        assert title != null;
+                        songsList.add(new Song(title, "", songUri));
+                    }
+                }
             }
-        } else { // category.equals("system")
-            // 系统铃声
-            RingtoneManager manager = new RingtoneManager(getContext());
-            cursor = manager.getCursor();
-            while (cursor.moveToNext()) {
-                int position = cursor.getPosition();
-                String title = manager.getRingtone(position).getTitle(getContext());
-                Uri songUri = manager.getRingtoneUri(position);
-                songsList.add(new Song(title, "", songUri));
+        } catch (Exception e) {
+            // 这里可以根据你的需要来处理异常，例如日志记录或者用户提示
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
             }
         }
-        cursor.close();
-
         return songsList;
     }
+
+    public static String getTitleFromUri(Uri uri) {
+        try {
+            String query = uri.getQuery();
+            if (query != null) {
+                String[] parameters = query.split("&");
+                for (String parameter : parameters) {
+                    if (parameter.startsWith("title=")) {
+                        String title = parameter.substring(6); // 跳过 "title=" 这6个字符
+                        return URLDecoder.decode(title, "UTF-8"); // 转换 %20 等字符
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // 你可以根据需要处理此异常，例如打印日志或返回默认标题
+            return "default title";
+        }
+
+        return "default title"; // 如果找不到 title，则返回 null 或其他默认值
+    }
+
 
 }
