@@ -6,6 +6,6 @@
     <string name="no_ringtone">无</string>
     <string name="system_ringtone"><![CDATA[系统铃声 >>]]></string>
     <string name="current_ringtone">当前铃声:</string>
-    <string name="alarm_selection">闹铃选择</string>
+    <string name="alarm_selection">铃声选择</string>
     <string name="test">清澈的小溪</string>
 </resources>

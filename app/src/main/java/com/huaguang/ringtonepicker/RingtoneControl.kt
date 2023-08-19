@@ -2,11 +2,11 @@ package com.huaguang.ringtonepicker
 
 import android.content.Context
 import android.media.MediaPlayer
-import android.media.Ringtone
-import android.media.RingtoneManager
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
+import android.util.Log
+import android.widget.Toast
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 
 /**
  * 控制铃声播放、停止的工具类
@@ -14,33 +14,49 @@ import android.os.Looper
 object RingtoneControl {
 
     private var mediaPlayer: MediaPlayer? = null
-    var ringtoneCompletionListener: RingtoneCompletionListener? = null
+    private var selectedPosition = -1 // 当前选中的位置，默认为 -1
+    private val _status: MutableLiveData<Status> = MutableLiveData()
+    val status: LiveData<Status> = _status
 
-    fun playRingtone(context: Context, uri: Uri) {
-        if (mediaPlayer == null) {
-            // 创建并配置 MediaPlayer
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(context, uri)
-                setOnCompletionListener {
-                    // 铃声播放完成，通知监听器
-                    ringtoneCompletionListener?.onRingtoneCompleted()
-                }
-                prepare()
+    /**
+     * 专门用于铃声列表项点击的播放控制
+     */
+    fun ringtonePlayControl(context: Context, uri: Uri, position: Int) {
+        // 停止或暂停之前的铃声
+        if (position != selectedPosition) {
+            // 当前点击的位置和缓存中的不一样
+            stopRingtone() // 停止之前的铃声
+            selectedPosition = position // 更新位置
+            mediaPlayer = createAndConfigPlayer(context, uri) // 创建并配置播放器
+            mediaPlayer?.start() // 播放新音乐
+        } else {
+            // 一样，说明点击的是同一个 Item
+            Log.i("铃声选择", "ringtonePlayControl: 点击的是同一个 Item！")
+            playOrPause()
+        }
+    }
+
+    /**
+     * 通过 Uri，创建并配置 MediaPlayer，达到 prepare 的状态
+     */
+    fun createAndConfigPlayer(context: Context, uri: Uri) =
+        MediaPlayer().apply {
+            setDataSource(context, uri)
+            setOnCompletionListener {
+                Toast.makeText(context, "播放完成", Toast.LENGTH_SHORT).show()
+                _status.value = Status.COMPLETE
             }
+            prepare()
         }
-        mediaPlayer?.start()
-    }
 
-    fun pauseRingtone() {
-        if (mediaPlayer?.isPlaying == true) {
-            mediaPlayer?.pause()
-        }
-    }
-
-    fun resumeRingtone() {
-        if (mediaPlayer?.isPlaying == false) {
-            mediaPlayer?.start()
-        }
+    /**
+     * 专门用于从铃声列表返回时的设定
+     */
+    fun stopAndPrepare() {
+        Log.i("铃声选择", "stopAndPrepare: 退出列表，返回对话框")
+        mediaPlayer?.stop()
+        mediaPlayer?.prepare()
+        _status.value = Status.STOP
     }
 
     fun stopRingtone() {
@@ -49,7 +65,18 @@ object RingtoneControl {
         mediaPlayer = null
     }
 
-    interface RingtoneCompletionListener {
-        fun onRingtoneCompleted()
+    /**
+     * 调用后，如果播放就暂停，如果暂停就播放（从原暂停处继续）。
+     * 顺便设置 status。
+     */
+    fun playOrPause() {
+        _status.value = if (mediaPlayer?.isPlaying == false) {
+            mediaPlayer?.start()
+            Status.PLAYING
+        } else {
+            mediaPlayer?.pause()
+            Status.PAUSE
+        }
     }
+
 }

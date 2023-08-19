@@ -44,10 +44,10 @@ public class RingtoneAdapter extends RecyclerView.Adapter<RingtoneAdapter.MyView
                 notifyItemChanged(selectedPosition); // 更新前一个选中项
                 selectedPosition = adapterPosition; // 更新选中位置
                 notifyItemChanged(selectedPosition); // 更新新选中项
-                /*---- 播放、停止音乐，返回结果等与视图控显无关的其他操作 ----*/
-                if (listener != null) {
-                    listener.onItemClicked(holder, song);
-                }
+            }
+            /*---- 播放、停止音乐，返回结果等与视图控显无关的其他操作 ----*/
+            if (listener != null) {
+                listener.onItemClicked(holder, adapterPosition);
             }
         });
     }
@@ -74,6 +74,6 @@ public class RingtoneAdapter extends RecyclerView.Adapter<RingtoneAdapter.MyView
     }
 
     interface OnItemClickListener {
-        void onItemClicked(MyViewHolder holder, Song song);
+        void onItemClicked(MyViewHolder holder, int position);
     }
 }

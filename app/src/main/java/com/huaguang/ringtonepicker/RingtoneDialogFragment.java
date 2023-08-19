@@ -1,29 +1,30 @@
 package com.huaguang.ringtonepicker;
 
 import android.Manifest;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.Observer;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.huaguang.ringtonepicker.databinding.FragmentRingtoneDialogBinding;
 import com.permissionx.guolindev.PermissionX;
 
+import java.util.Objects;
+
 public class RingtoneDialogFragment extends BottomSheetDialogFragment {
 
     static final String RINGTONE_REQUEST_KEY = "ringtoneRequestKey";
+    Status status;
     private FragmentRingtoneDialogBinding binding;
-    private Ringtone currentRingtone;
 
     public RingtoneDialogFragment() {
         // Required empty public constructor
@@ -38,7 +39,7 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         binding = FragmentRingtoneDialogBinding.inflate(getLayoutInflater(), container, false);
-        // TODO: 2023/8/19 从 sp 中取值，设置 currentRingtone
+        // TODO: 2023/8/19 从 sp 中取值，设置 currentRingtone（title）
         return binding.getRoot();
     }
 
@@ -46,27 +47,33 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        Log.i("铃声选择", "onViewCreated 执行！");
+
+        // TODO: 2023/8/19 根据 sp 中的 Uri，创建并配置全新的播放器
+//        RingtoneControl.INSTANCE.createAndConfigPlayer(requireContext(), );
+        // 当前铃声项的点击监听，通用
+        binding.layoutCurrentRingtone.setOnClickListener(v -> {
+            RingtoneControl.INSTANCE.playOrPause();
+        });
+
+        // 观察铃声播放状态的变化
+        // 这里不要使用 requireActivity()，会出问题，Fragment 销毁时观察者不会被释放
+        RingtoneControl.INSTANCE.getStatus().observe(getViewLifecycleOwner(), status -> {
+            if (status == Status.PLAYING) {
+                binding.ivDisplay.setImageResource(R.drawable.play);
+            } else {
+                binding.ivDisplay.setImageResource(R.drawable.pause);
+            }
+        });
+
+        // 获取 RingtoneListFragment 设置的结果并更新 UI（当前铃声项）
         getParentFragmentManager().setFragmentResultListener(
                 RINGTONE_REQUEST_KEY,
                 this,
                 (requestKey, result) -> {
-                    // 获取并处理结果
-                    Song song = (Song) result.getParcelable("songKey");
-                    currentRingtone = RingtoneManager.getRingtone(requireContext(), song.getSongUri());
+                    Song song = result.getParcelable("songKey");
                     /*---------------------------------更新当前铃声的 UI，并设置点击监听---------------------------------*/
                     binding.tvCurrentRingtone.setText(song.getSongTitle());
-                    binding.layoutCurrentRingtone.setOnClickListener(v -> {
-                        if (currentRingtone.isPlaying()) {
-                            currentRingtone.stop();
-                            binding.ivDisplay.setImageResource(R.drawable.play);
-                        } else {
-                            // play 方法调用一次就会重新播放一次，原播放不会受到影响，多铃声同时进行。
-                            // 播放会在后台进行，只有当应用程序的进程结束时播放才会停止，Activity 销毁不受影响。
-                            // 仅会完整的播放一次。
-                            currentRingtone.play();
-                            binding.ivDisplay.setImageResource(R.drawable.pause);
-                        }
-                    });
                 }
         );
 
@@ -74,7 +81,7 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
         binding.tvSystemRingtone.setOnClickListener(v -> {
             /*----------------------------------进入系统铃声列表-----------------------------------------*/
             // 停止对话框内当前铃声的播放
-            stopCurrentRingtone();
+            RingtoneControl.INSTANCE.stopRingtone();
             Toast.makeText(getContext(), "此处厂商似乎做了限制，打开略有延迟", Toast.LENGTH_SHORT).show();
             // 打开铃声列表页（标记为系统）
             RingtoneListFragment fragment = RingtoneListFragment.newInstance("system");
@@ -95,6 +102,7 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        RingtoneControl.INSTANCE.stopRingtone();
         binding = null;
     }
 
@@ -136,7 +144,7 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
      */
     private void openLocalRingtoneList() {
         // 停止对话框内当前铃声的播放
-        stopCurrentRingtone();
+        RingtoneControl.INSTANCE.stopRingtone();
         Toast.makeText(getContext(), "本铃声戴耳机也会外放，请关注音量", Toast.LENGTH_SHORT).show();
         // 打开铃声列表（标记为本地）
         RingtoneListFragment fragment = RingtoneListFragment.newInstance("local");
@@ -144,13 +152,6 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
                 .replace(R.id.container, fragment) // 假设你的容器ID是container
                 .addToBackStack(null)
                 .commit();
-    }
-
-    private void stopCurrentRingtone() {
-        // 停止对话框内当前铃声的播放
-        if (currentRingtone != null && currentRingtone.isPlaying()) {
-            currentRingtone.stop();
-        }
     }
 
 }

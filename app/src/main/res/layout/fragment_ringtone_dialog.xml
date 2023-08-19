@@ -57,7 +57,7 @@
             android:id="@+id/iv_display"
             android:layout_width="18dp"
             android:layout_height="18dp"
-            android:src="@drawable/play"
+            android:src="@drawable/pause"
             android:layout_gravity="center_vertical"
             android:layout_marginStart="10dp"/>
 

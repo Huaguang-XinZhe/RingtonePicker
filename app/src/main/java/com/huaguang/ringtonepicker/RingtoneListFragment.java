@@ -24,6 +24,7 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
 
     private String listType;
     private FragmentRingtoneListBinding binding;
+    private List<Song> songs;
 
     public RingtoneListFragment() {
         // Required empty public constructor
@@ -53,7 +54,7 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
         // 配置 RecyclerView 的布局和适配器（包括数据和监听器）
         RecyclerView recyclerView = binding.recyclerView;
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        List<Song> songs = getSongs(listType);
+        songs = getSongs(listType);
         RingtoneAdapter adapter = new RingtoneAdapter(songs);
         adapter.setItemClickListener(this);
         recyclerView.setAdapter(adapter);
@@ -61,19 +62,19 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
         return binding.getRoot();
     }
 
-
     @Override
     public void onDestroy() {
         super.onDestroy();
-        RingtoneControl.INSTANCE.stopRingtone();
+        RingtoneControl.INSTANCE.stopAndPrepare();
         binding = null;
     }
 
     @Override
-    public void onItemClicked(RingtoneAdapter.MyViewHolder holder, Song song) {
+    public void onItemClicked(RingtoneAdapter.MyViewHolder holder, int position) {
         Log.i("铃声选择", "onItemClicked: 铃声选中！");
-        // 停止前边的音乐，播放新音乐
-        RingtoneControl.INSTANCE.playRingtone(requireContext(), song.getSongUri());
+        Song song = songs.get(position);
+        // 点击项的播放控制（播放、暂停、停止）
+        RingtoneControl.INSTANCE.ringtonePlayControl(requireContext(), song.getSongUri(), position);
         // 设置结果
         setResult(song);
     }
