@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">RingtonePicker</string>
+    <string name="artist">艺术家</string>
+    <string name="ring_name">我是歌名</string>
+    <string name="local_ringtone"><![CDATA[本地铃声 >>]]></string>
+    <string name="no_ringtone">无</string>
+    <string name="system_ringtone"><![CDATA[系统铃声 >>]]></string>
+    <string name="current_ringtone">当前铃声:</string>
+    <string name="alarm_selection">闹铃选择</string>
+    <string name="test">清澈的小溪</string>
+</resources>
