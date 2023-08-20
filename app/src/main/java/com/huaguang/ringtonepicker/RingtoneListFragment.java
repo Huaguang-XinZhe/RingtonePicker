@@ -19,7 +19,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.huaguang.ringtonepicker.databinding.FragmentRingtoneListBinding;
 
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -134,8 +133,7 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
                         int position = cursor.getPosition();
                         // content://media/external/audio/media/76502?title=Daylight%20Dreaming&canonical=1
                         Uri songUri = manager.getRingtoneUri(position);
-                        String title = getTitleFromUri(songUri);
-                        assert title != null;
+                        String title = songUri.getQueryParameter("title");
                         songsList.add(new Song(title, "", songUri));
                     }
                 }
@@ -150,26 +148,5 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
         }
         return songsList;
     }
-
-    public static String getTitleFromUri(Uri uri) {
-        try {
-            String query = uri.getQuery();
-            if (query != null) {
-                String[] parameters = query.split("&");
-                for (String parameter : parameters) {
-                    if (parameter.startsWith("title=")) {
-                        String title = parameter.substring(6); // 跳过 "title=" 这6个字符
-                        return URLDecoder.decode(title, "UTF-8"); // 转换 %20 等字符
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // 你可以根据需要处理此异常，例如打印日志或返回默认标题
-            return "default title";
-        }
-
-        return "default title"; // 如果找不到 title，则返回 null 或其他默认值
-    }
-
 
 }
