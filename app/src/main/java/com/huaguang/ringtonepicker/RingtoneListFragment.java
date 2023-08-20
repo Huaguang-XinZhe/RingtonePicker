@@ -67,7 +67,13 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
     @Override
     public void onDestroy() {
         super.onDestroy();
+        // 铃声停止并重新准备
         RingtoneControl.INSTANCE.stopAndPrepare();
+        // 返回时重新显示底部对话框
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).showRingtoneDialog();
+        }
+        // 释放视图绑定
         binding = null;
     }
 

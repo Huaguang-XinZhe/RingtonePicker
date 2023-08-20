@@ -1,8 +1,8 @@
 package com.huaguang.ringtonepicker;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.huaguang.ringtonepicker.databinding.ActivityMainBinding;
 
@@ -17,9 +17,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, RingtoneDialogFragment.newInstance())
-                    .commit();
+            showRingtoneDialog();
         }
     }
 
@@ -27,5 +25,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         binding = null;
+    }
+
+    public void showRingtoneDialog() {
+        RingtoneDialogFragment ringtoneDialogFragment = RingtoneDialogFragment.newInstance();
+        ringtoneDialogFragment.show(getSupportFragmentManager(), ringtoneDialogFragment.getTag());
     }
 }

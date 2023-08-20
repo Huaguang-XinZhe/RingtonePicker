@@ -19,7 +19,6 @@ import com.permissionx.guolindev.PermissionX;
 public class RingtoneDialogFragment extends BottomSheetDialogFragment {
 
     static final String RINGTONE_REQUEST_KEY = "ringtoneRequestKey";
-    Status status;
     private FragmentRingtoneDialogBinding binding;
 
     public RingtoneDialogFragment() {
@@ -68,16 +67,18 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
                 this,
                 (requestKey, result) -> {
                     Song song = result.getParcelable("songKey");
-                    /*---------------------------------更新当前铃声的 UI，并设置点击监听---------------------------------*/
+                    /*-----------更新当前铃声的 UI，并设置点击监听--------------*/
                     binding.tvCurrentRingtone.setText(song.getSongTitle());
                 }
         );
 
         // 你的其他代码，例如启动 RingtoneListFragment
         binding.tvSystemRingtone.setOnClickListener(v -> {
-            /*----------------------------------进入系统铃声列表-----------------------------------------*/
+            /*-------------------------------进入系统铃声列表-----------------------------------*/
             // 停止对话框内当前铃声的播放
             RingtoneControl.INSTANCE.stopRingtone();
+            // 关闭对话框
+            dismiss();
             // 打开铃声列表页（标记为系统）
             RingtoneListFragment fragment = RingtoneListFragment.newInstance("system");
             getParentFragmentManager().beginTransaction()
@@ -141,9 +142,11 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
         // 停止对话框内当前铃声的播放
         RingtoneControl.INSTANCE.stopRingtone();
         Toast.makeText(getContext(), "本铃声戴耳机也会外放，请关注音量", Toast.LENGTH_SHORT).show();
-        // 打开铃声列表（标记为本地）
+        // 关闭对话框
+        dismiss();
+        // 打开铃声列表（标记为本地）在主活动容器中
         RingtoneListFragment fragment = RingtoneListFragment.newInstance("local");
-        getParentFragmentManager().beginTransaction()
+        requireActivity().getSupportFragmentManager().beginTransaction()
                 .replace(R.id.container, fragment) // 假设你的容器ID是container
                 .addToBackStack(null)
                 .commit();
