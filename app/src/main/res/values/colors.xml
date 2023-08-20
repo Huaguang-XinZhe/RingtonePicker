@@ -18,4 +18,5 @@
     <color name="brown">#644d31</color>
     <color name="gray_code_bg">#f8f9fa</color>
     <color name="black_light">#3b3a39</color>
+    <color name="light_bg">#fdfbfe</color>
 </resources>
