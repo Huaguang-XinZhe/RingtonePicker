@@ -18,6 +18,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.huaguang.ringtonepicker.databinding.FragmentRingtoneDialogBinding;
 import com.permissionx.guolindev.PermissionX;
 
+import java.util.Objects;
+
 public class RingtoneDialogFragment extends BottomSheetDialogFragment {
 
     static final String RINGTONE_REQUEST_KEY = "ringtoneRequestKey";
@@ -41,10 +43,14 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
         spHelper = SPHelper.Companion.getInstance(requireContext());
         // 从 sp 中取值，设置铃声信息
         currentRingtone = getCurrentRingtone(); // 要用到 spHelper，所以应该放在后边
-        Log.i("铃声选择", "onCreate: current = " + currentRingtone);
-        if (!spHelper.getFlag("from_back")) {
-            // 不来自从列表返回后的重建，就初始化 Player
-            RingtoneControl.INSTANCE.initializePlayer(requireContext(), currentRingtone.getSongUri());
+        Log.i("铃声选择", "onCreate: currentRingtone = " + currentRingtone);
+
+        if (!spHelper.getFlag("from_back") && currentRingtone != null) { // 只要不来自于 ”无“ 的点击，就不会为 null
+            // 不来自从列表返回后的重建，且不来自 ”无“ 条目的点击，就初始化 Player
+            RingtoneControl.INSTANCE.initializePlayer(
+                    requireContext(),
+                    Objects.requireNonNull(currentRingtone.getSongUri())
+            );
         }
 
     }
@@ -55,7 +61,13 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
                              @Nullable Bundle savedInstanceState) {
         binding = FragmentRingtoneDialogBinding.inflate(getLayoutInflater(), container, false);
         // 显示标题
-        binding.tvCurrentRingtone.setText(currentRingtone.getSongTitle());
+        binding.tvCurrentRingtone.setText(getTitleDisplay());
+        // 当前铃声为 null，不显示播放、暂停图标
+        if (currentRingtone == null) {
+            binding.ivDisplay.setVisibility(View.GONE);
+        } else {
+            binding.ivDisplay.setVisibility(View.VISIBLE);
+        }
         return binding.getRoot();
     }
 
@@ -84,13 +96,15 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
         getParentFragmentManager().setFragmentResultListener(
                 RINGTONE_REQUEST_KEY,
                 this,
-                (requestKey, result) -> {
+                (requestKey, result) -> { // 下面的逻辑有结果传回来才会执行，没有结果传回来就不会执行！
                     Song song = result.getParcelable("songKey");
                     // 更新当前铃声的 Uri 和 title，以备 sp 持久化存储
                     currentRingtone = song;
                     Log.i("铃声选择", "返回结果处理 current = " + currentRingtone);
-                    /*-----------更新当前铃声的 UI，并设置点击监听--------------*/
+                    /*---------- 更新当前铃声的 UI（标题和图标）----------------------*/
                     binding.tvCurrentRingtone.setText(song.getSongTitle());
+                    // 这段逻辑会在 Fragment 创建类型生命周期回调结束后再执行，所以有必要再设置
+                    binding.ivDisplay.setVisibility(View.VISIBLE);
                 }
         );
 
@@ -115,6 +129,12 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
             //请求存储空间权限（READ_EXTERNAL_STORAGE）
             requestPermission();
 
+        });
+
+        // “无” 条目的点击监听
+        binding.tvNoRingtone.setOnClickListener(v -> {
+            currentRingtone = null;
+            dismiss();
         });
 
     }
@@ -191,16 +211,28 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
         Uri uri;
         String title;
 
+        if (uriStrFromSP.equals("NULL")) return null;
+
         if (uriStrFromSP.isEmpty()) {
             // songUri=content://settings/system/alarm_alert，用 MediaPlayer 能够播放！
             uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
             title = "系统默认（闹铃）";
-        } else {
+        }  else {
             uri = Uri.parse(uriStrFromSP);
             title = spHelper.getTitle();
         }
 
         return new Song(title, uri, "");
+    }
+
+    private String getTitleDisplay() {
+        String title;
+        if (currentRingtone == null) {
+            title = "无";
+        } else {
+            title = currentRingtone.getSongTitle();
+        }
+        return title;
     }
 
 }

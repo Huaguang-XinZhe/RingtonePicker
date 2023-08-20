@@ -8,7 +8,7 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 data class Song(
     val songTitle: String,
-    val songUri: Uri,
+    val songUri: Uri?,
     val artist: String = "",
 ) : Parcelable {
     override fun describeContents(): Int {

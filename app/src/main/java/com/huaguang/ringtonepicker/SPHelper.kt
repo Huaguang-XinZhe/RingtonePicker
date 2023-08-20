@@ -1,6 +1,7 @@
 package com.huaguang.ringtonepicker
 
 import android.content.Context
+import android.util.Log
 
 class SPHelper private constructor(context: Context) {
 
@@ -19,10 +20,22 @@ class SPHelper private constructor(context: Context) {
         }
     }
 
-    fun saveRingtoneInfo(song: Song) {
+    fun saveRingtoneInfo(song: Song?) {
+        val uriStr: String
+        val title: String
+
+        if (song == null) {
+            Log.i("铃声选择", "saveRingtoneInfo: 为 null，存入")
+            uriStr = "NULL"
+            title = "无"
+        } else {
+            uriStr = song.songUri.toString()
+            title = song.songTitle
+        }
+
         sp.edit().apply {
-            putString("ringtone_uri", song.songUri.toString())
-            putString("ringtone_title", song.songTitle)
+            putString("ringtone_uri", uriStr)
+            putString("ringtone_title", title)
         }.apply()
     }
 
