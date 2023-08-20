@@ -21,12 +21,13 @@ import com.huaguang.ringtonepicker.databinding.FragmentRingtoneListBinding;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class RingtoneListFragment extends Fragment implements RingtoneAdapter.OnItemClickListener {
 
     private String listType;
     private FragmentRingtoneListBinding binding;
-    private List<Song> songs;
+    private Song selectedSong;
 
     public RingtoneListFragment() {
         // Required empty public constructor
@@ -56,7 +57,7 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
         // 配置 RecyclerView 的布局和适配器（包括数据和监听器）
         RecyclerView recyclerView = binding.recyclerView;
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        songs = getSongs(listType);
+        List<Song> songs = getSongs(listType);
         RingtoneAdapter adapter = new RingtoneAdapter(songs);
         adapter.setItemClickListener(this);
         recyclerView.setAdapter(adapter);
@@ -65,10 +66,27 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
     }
 
     @Override
+    public void onStop() {
+        super.onStop();
+        Log.i("铃声选择", "onStop: ListFragment");
+
+        if (selectedSong != null) {
+            // 铃声停止并重新准备
+            RingtoneControl.INSTANCE.stopAndPrepare();
+            // 设置结果和返回标志
+            setResult(selectedSong);
+            SPHelper.Companion.getInstance(requireContext()).setFlag("from_back_selected", true);
+        } else {
+            Log.i("铃声选择", "onStop: 什么都没选！");
+            SPHelper.Companion.getInstance(requireContext()).setFlag("from_back_selected", false); // 必须设，否则播放器不能初始化
+        }
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
-        // 铃声停止并重新准备
-        RingtoneControl.INSTANCE.stopAndPrepare();
+        Log.i("铃声选择", "onDestroy: ListFragment");
+
         // 释放视图绑定
         binding = null;
         // 返回时重新显示底部对话框
@@ -78,13 +96,15 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
     }
 
     @Override
-    public void onItemClicked(RingtoneAdapter.MyViewHolder holder, int position) {
+    public void onItemClicked(RingtoneAdapter.MyViewHolder holder, Song song, int position) {
         Log.i("铃声选择", "onItemClicked: 铃声选中！");
-        Song song = songs.get(position);
         // 点击项的播放控制（播放、暂停、停止）
-        RingtoneControl.INSTANCE.ringtonePlayControl(requireContext(), song.getSongUri(), position);
-        // 设置结果
-        setResult(song);
+        RingtoneControl.INSTANCE.ringtonePlayControl(
+                requireContext(),
+                Objects.requireNonNull(song.getSongUri()),
+                position
+        );
+        selectedSong = song;
     }
 
     /**

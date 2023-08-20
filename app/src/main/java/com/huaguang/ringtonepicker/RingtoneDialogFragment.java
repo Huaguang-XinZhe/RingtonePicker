@@ -43,14 +43,14 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
         spHelper = SPHelper.Companion.getInstance(requireContext());
         // 从 sp 中取值，设置铃声信息
         currentRingtone = getCurrentRingtone(); // 要用到 spHelper，所以应该放在后边
-        Log.i("铃声选择", "onCreate: currentRingtone = " + currentRingtone);
 
-        if (!spHelper.getFlag("from_back") && currentRingtone != null) { // 只要不来自于 ”无“ 的点击，就不会为 null
+        if (!spHelper.getFlag("from_back_selected") && currentRingtone != null) { // 只要不来自于 ”无“ 的点击，就不会为 null
             // 不来自从列表返回后的重建，且不来自 ”无“ 条目的点击，就初始化 Player
             RingtoneControl.INSTANCE.initializePlayer(
                     requireContext(),
                     Objects.requireNonNull(currentRingtone.getSongUri())
             );
+            Log.i("铃声选择", "onCreate: 初始化播放器");
         }
 
     }
@@ -121,8 +121,7 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
                     .replace(R.id.container, fragment) // 假设你的容器ID是container
                     .addToBackStack(null)
                     .commit();
-            // 设置 from_back 的值，让 DialogFragment 重建时不执行 Player 的初始化
-            spHelper.setFlag("from_back", true);
+            // 设置 from_back_selected 的值，让 DialogFragment 重建时不执行 Player 的初始化
         });
 
         binding.tvLocalRingtone.setOnClickListener(v -> {
@@ -196,9 +195,8 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
                 .replace(R.id.container, fragment) // 假设你的容器ID是container
                 .addToBackStack(null)
                 .commit();
-        // 更新 sp 中 from_back 的值，既然打开，就一定会返回。
+        // 更新 sp 中 from_back_selected 的值，既然打开，就一定会返回。
         // 又因为仅有当前 Fragment 持有 SPHelper 的引用，所以在这里设置。
-        spHelper.setFlag("from_back", true);
 
     }
 

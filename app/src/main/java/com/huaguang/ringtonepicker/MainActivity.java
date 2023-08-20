@@ -24,7 +24,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        SPHelper.Companion.getInstance(this).setFlag("from_back", false); // 恢复初始值
+        // 放在 Activity 的 onDestroy 回调内有时不会得到完整执行，所以放在这里
+        SPHelper.Companion.getInstance(this).setFlag("from_back_selected", false); // 恢复初始值
     }
 
     @Override

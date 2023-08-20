@@ -1,7 +1,6 @@
 package com.huaguang.ringtonepicker;
 
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -47,7 +46,7 @@ public class RingtoneAdapter extends RecyclerView.Adapter<RingtoneAdapter.MyView
             }
             /*---- 播放、停止音乐，返回结果等与视图控显无关的其他操作 ----*/
             if (listener != null) {
-                listener.onItemClicked(holder, adapterPosition);
+                listener.onItemClicked(holder, song, adapterPosition);
             }
         });
     }
@@ -74,6 +73,6 @@ public class RingtoneAdapter extends RecyclerView.Adapter<RingtoneAdapter.MyView
     }
 
     interface OnItemClickListener {
-        void onItemClicked(MyViewHolder holder, int position);
+        void onItemClicked(MyViewHolder holder, Song song, int position);
     }
 }

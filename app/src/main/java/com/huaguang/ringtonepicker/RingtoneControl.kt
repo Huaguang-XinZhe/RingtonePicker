@@ -65,13 +65,14 @@ object RingtoneControl {
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
+        _status.value = Status.STOP
     }
 
     /**
      * 调用后，如果播放就暂停，如果暂停就播放（从原暂停处继续）。
      * 顺便设置 status。
      */
-    fun playOrPause() {
+    fun playOrPause2() {
         _status.value = if (mediaPlayer?.isPlaying == false) {
             Log.i("铃声选择", "playOrPause: 播放")
             mediaPlayer?.start()
@@ -82,5 +83,28 @@ object RingtoneControl {
             Status.PAUSE
         }
     }
+
+    fun playOrPause() {
+        if (mediaPlayer != null) {
+            if (mediaPlayer?.isPlaying == true) {
+                Log.i("铃声选择", "playOrPause: 暂停")
+                mediaPlayer?.pause()
+                _status.value = Status.PAUSE
+            } else {
+                Log.i("铃声选择", "playOrPause: 播放")
+                try {
+                    mediaPlayer?.start()
+                    _status.value = Status.PLAYING
+                } catch (e: IllegalStateException) {
+                    Log.e("铃声选择", "MediaPlayer 未准备好", e)
+                    // 处理错误
+                }
+            }
+        } else {
+            Log.w("铃声选择", "MediaPlayer 未初始化")
+            // 初始化或处理错误
+        }
+    }
+
 
 }
