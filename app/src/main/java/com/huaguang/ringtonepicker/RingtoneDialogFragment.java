@@ -122,12 +122,13 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
                 })
                 .request((allGranted, grantedList, deniedList) -> {
                     if (allGranted) {
-                        //只会执行一次！
-                        //                        if (sp.getBoolean("isRequested", true)) {
-                        Toast.makeText(getContext(), "权限获取成功！", Toast.LENGTH_SHORT).show();
+                        // 权限获取成功提示，只执行一次
+                        SPHelper spHelper = SPHelper.Companion.getInstance(requireContext());
+                        spHelper.doOnce(() -> {
+                            Toast.makeText(getContext(), "权限获取成功！", Toast.LENGTH_SHORT).show();
+                            return null;
+                        });
 
-                        //                            sp.edit().putBoolean("isRequested", false).apply();
-                        //                        }
                         openLocalRingtoneList();
                     } else {
                         Toast.makeText(getContext(), "您已拒绝此权限，无法获取本地铃声！", Toast.LENGTH_SHORT).show();
