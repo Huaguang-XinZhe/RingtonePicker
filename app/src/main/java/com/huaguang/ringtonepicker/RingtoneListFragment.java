@@ -69,12 +69,12 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
         super.onDestroy();
         // 铃声停止并重新准备
         RingtoneControl.INSTANCE.stopAndPrepare();
+        // 释放视图绑定
+        binding = null;
         // 返回时重新显示底部对话框
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).showRingtoneDialog();
         }
-        // 释放视图绑定
-        binding = null;
     }
 
     @Override
@@ -126,7 +126,7 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
                         String artist = cursor.getString(artistIndex);
                         long id = cursor.getLong(idIndex);
                         Uri songUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
-                        songsList.add(new Song(title, artist, songUri));
+                        songsList.add(new Song(title, songUri, artist));
                     }
                 }
             } else if (category.equals("system")) {
@@ -140,7 +140,7 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
                         // content://media/external/audio/media/76502?title=Daylight%20Dreaming&canonical=1
                         Uri songUri = manager.getRingtoneUri(position);
                         String title = songUri.getQueryParameter("title");
-                        songsList.add(new Song(title, "", songUri));
+                        songsList.add(new Song(title, songUri, ""));
                     }
                 }
             }

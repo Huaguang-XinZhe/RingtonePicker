@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        SPHelper.Companion.getInstance(this).setFlag("from_back", false); // 恢复初始值
         binding = null;
     }
 

@@ -27,7 +27,7 @@ object RingtoneControl {
             // 当前点击的位置和缓存中的不一样
             stopRingtone() // 停止之前的铃声
             selectedPosition = position // 更新位置
-            mediaPlayer = createAndConfigPlayer(context, uri) // 创建并配置播放器
+            initializePlayer(context, uri) // 创建并配置播放器
             mediaPlayer?.start() // 播放新音乐
         } else {
             // 一样，说明点击的是同一个 Item
@@ -39,8 +39,9 @@ object RingtoneControl {
     /**
      * 通过 Uri，创建并配置 MediaPlayer，达到 prepare 的状态
      */
-    fun createAndConfigPlayer(context: Context, uri: Uri) =
-        MediaPlayer().apply {
+    fun initializePlayer(context: Context, uri: Uri) {
+        // 为了让外界直接调用，必须给 mediaPlayer 赋值！仅仅创建和配置是没用的。
+        mediaPlayer = MediaPlayer().apply {
             setDataSource(context, uri)
             setOnCompletionListener {
                 Toast.makeText(context, "播放完成", Toast.LENGTH_SHORT).show()
@@ -48,6 +49,7 @@ object RingtoneControl {
             }
             prepare()
         }
+    }
 
     /**
      * 专门用于从铃声列表返回时的设定
@@ -71,9 +73,11 @@ object RingtoneControl {
      */
     fun playOrPause() {
         _status.value = if (mediaPlayer?.isPlaying == false) {
+            Log.i("铃声选择", "playOrPause: 播放")
             mediaPlayer?.start()
             Status.PLAYING
         } else {
+            Log.i("铃声选择", "playOrPause: 暂停")
             mediaPlayer?.pause()
             Status.PAUSE
         }

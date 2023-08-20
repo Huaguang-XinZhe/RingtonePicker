@@ -19,32 +19,40 @@ class SPHelper private constructor(context: Context) {
         }
     }
 
-    init {
-        saveFlag(false)
+    fun saveRingtoneInfo(song: Song) {
+        sp.edit().apply {
+            putString("ringtone_uri", song.songUri.toString())
+            putString("ringtone_title", song.songTitle)
+        }.apply()
     }
 
-    fun saveUri(value: String) {
-        sp.edit().putString("ringtone_uri", value).apply()
+    /**
+     * 获取 Boolean 类型的标记值，默认为 false
+     */
+    fun getFlag(key: String): Boolean {
+        return sp.getBoolean(key, false)
+    }
+
+    fun setFlag(key: String, value: Boolean) {
+        sp.edit().putBoolean(key, value).apply()
     }
 
     fun getUri(): String {
         return sp.getString("ringtone_uri", "") ?: ""
     }
 
+    fun getTitle(): String {
+        return sp.getString("ringtone_title", "") ?: ""
+    }
+
+    /**
+     * 在应用的 ”安装-卸载“ 生命周期内只执行一次！
+     */
     fun doOnce(callback: () -> Unit) {
-        if (!getFlag()) {
+        if (!getFlag("executed")) {
             callback()
-            saveFlag(true)
+            setFlag("executed", true)
         }
     }
-
-    private fun saveFlag(value: Boolean) {
-        sp.edit().putBoolean("executed", value).apply()
-    }
-
-    private fun getFlag(): Boolean {
-        return sp.getBoolean("executed", true)
-    }
-
 
 }

@@ -1,6 +1,8 @@
 package com.huaguang.ringtonepicker;
 
 import android.Manifest;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,6 +21,8 @@ import com.permissionx.guolindev.PermissionX;
 public class RingtoneDialogFragment extends BottomSheetDialogFragment {
 
     static final String RINGTONE_REQUEST_KEY = "ringtoneRequestKey";
+    private SPHelper spHelper;
+    private Song currentRingtone;
     private FragmentRingtoneDialogBinding binding;
 
     public RingtoneDialogFragment() {
@@ -29,25 +33,40 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
         return new RingtoneDialogFragment();
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // 设置 spHelper。不能放在属性中直接赋值，那时候 Fragment 可能还没加在宿主 Activity 上，Context 无效
+        spHelper = SPHelper.Companion.getInstance(requireContext());
+        // 从 sp 中取值，设置铃声信息
+        currentRingtone = getCurrentRingtone(); // 要用到 spHelper，所以应该放在后边
+        Log.i("铃声选择", "onCreate: current = " + currentRingtone);
+        if (!spHelper.getFlag("from_back")) {
+            // 不来自从列表返回后的重建，就初始化 Player
+            RingtoneControl.INSTANCE.initializePlayer(requireContext(), currentRingtone.getSongUri());
+        }
+
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         binding = FragmentRingtoneDialogBinding.inflate(getLayoutInflater(), container, false);
-        // TODO: 2023/8/19 从 sp 中取值，设置 currentRingtone（title）
+        // 显示标题
+        binding.tvCurrentRingtone.setText(currentRingtone.getSongTitle());
         return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.i("铃声选择", "onViewCreated: 执行");
 
-        Log.i("铃声选择", "onViewCreated 执行！");
-
-        // TODO: 2023/8/19 根据 sp 中的 Uri，创建并配置全新的播放器
-//        RingtoneControl.INSTANCE.createAndConfigPlayer(requireContext(), );
         // 当前铃声项的点击监听，通用
         binding.layoutCurrentRingtone.setOnClickListener(v -> {
+            Log.i("铃声选择", "onViewCreated: 当前铃声块点击");
             RingtoneControl.INSTANCE.playOrPause();
         });
 
@@ -67,6 +86,9 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
                 this,
                 (requestKey, result) -> {
                     Song song = result.getParcelable("songKey");
+                    // 更新当前铃声的 Uri 和 title，以备 sp 持久化存储
+                    currentRingtone = song;
+                    Log.i("铃声选择", "返回结果处理 current = " + currentRingtone);
                     /*-----------更新当前铃声的 UI，并设置点击监听--------------*/
                     binding.tvCurrentRingtone.setText(song.getSongTitle());
                 }
@@ -85,6 +107,8 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
                     .replace(R.id.container, fragment) // 假设你的容器ID是container
                     .addToBackStack(null)
                     .commit();
+            // 设置 from_back 的值，让 DialogFragment 重建时不执行 Player 的初始化
+            spHelper.setFlag("from_back", true);
         });
 
         binding.tvLocalRingtone.setOnClickListener(v -> {
@@ -98,7 +122,9 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.i("铃声选择", "onDestroy: DialogFragment 销毁了");
         RingtoneControl.INSTANCE.stopRingtone();
+        spHelper.saveRingtoneInfo(currentRingtone);
         binding = null;
     }
 
@@ -123,7 +149,6 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
                 .request((allGranted, grantedList, deniedList) -> {
                     if (allGranted) {
                         // 权限获取成功提示，只执行一次
-                        SPHelper spHelper = SPHelper.Companion.getInstance(requireContext());
                         spHelper.doOnce(() -> {
                             Toast.makeText(getContext(), "权限获取成功！", Toast.LENGTH_SHORT).show();
                             return null;
@@ -151,6 +176,31 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
                 .replace(R.id.container, fragment) // 假设你的容器ID是container
                 .addToBackStack(null)
                 .commit();
+        // 更新 sp 中 from_back 的值，既然打开，就一定会返回。
+        // 又因为仅有当前 Fragment 持有 SPHelper 的引用，所以在这里设置。
+        spHelper.setFlag("from_back", true);
+
+    }
+
+    /**
+     * 从 sp 中获取存储的铃声信息，没有就返回系统的。
+     */
+    private Song getCurrentRingtone() {
+        // uri = content://media/external/audio/media/69，用 MediaPlayer 能够播放
+        String uriStrFromSP = spHelper.getUri();
+        Uri uri;
+        String title;
+
+        if (uriStrFromSP.isEmpty()) {
+            // songUri=content://settings/system/alarm_alert，用 MediaPlayer 能够播放！
+            uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+            title = "系统默认（闹铃）";
+        } else {
+            uri = Uri.parse(uriStrFromSP);
+            title = spHelper.getTitle();
+        }
+
+        return new Song(title, uri, "");
     }
 
 }
