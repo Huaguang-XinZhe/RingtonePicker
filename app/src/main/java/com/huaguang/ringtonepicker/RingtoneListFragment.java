@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.huaguang.ringtonepicker.databinding.FragmentRingtoneListBinding;
@@ -28,6 +27,7 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
     private String listType;
     private FragmentRingtoneListBinding binding;
     private Song selectedSong;
+    private SPHelper spHelper;
 
     public RingtoneListFragment() {
         // Required empty public constructor
@@ -44,6 +44,9 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i("铃声选择", "onCreate: ListFragment");
+        spHelper = SPHelper.Companion.getInstance(requireContext()); // 在这里初始化 SPHelper，后边都能用。
+
         if (getArguments() != null) {
             listType = getArguments().getString("listType");
         }
@@ -54,11 +57,11 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
                              Bundle savedInstanceState) {
         binding = FragmentRingtoneListBinding.inflate(inflater, container, false);
 
-        // 配置 RecyclerView 的布局和适配器（包括数据和监听器）
+        Log.i("铃声选择", "onCreateView: ListFragment");
+        // 配置 RecyclerView 的适配器（包括数据和监听器）
         RecyclerView recyclerView = binding.recyclerView;
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         List<Song> songs = getSongs(listType);
-        RingtoneAdapter adapter = new RingtoneAdapter(songs);
+        RingtoneAdapter adapter = new RingtoneAdapter(songs, requireContext(), spHelper);
         adapter.setItemClickListener(this);
         recyclerView.setAdapter(adapter);
 
@@ -75,10 +78,10 @@ public class RingtoneListFragment extends Fragment implements RingtoneAdapter.On
             RingtoneControl.INSTANCE.stopAndPrepare();
             // 设置结果和返回标志
             setResult(selectedSong);
-            SPHelper.Companion.getInstance(requireContext()).setFlag("from_back_selected", true);
+            spHelper.setFlag("from_back_selected", true);
         } else {
             Log.i("铃声选择", "onStop: 什么都没选！");
-            SPHelper.Companion.getInstance(requireContext()).setFlag("from_back_selected", false); // 必须设，否则播放器不能初始化
+            spHelper.setFlag("from_back_selected", false); // 必须设，否则播放器不能初始化
         }
     }
 

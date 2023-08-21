@@ -72,18 +72,6 @@ object RingtoneControl {
      * 调用后，如果播放就暂停，如果暂停就播放（从原暂停处继续）。
      * 顺便设置 status。
      */
-    fun playOrPause2() {
-        _status.value = if (mediaPlayer?.isPlaying == false) {
-            Log.i("铃声选择", "playOrPause: 播放")
-            mediaPlayer?.start()
-            Status.PLAYING
-        } else {
-            Log.i("铃声选择", "playOrPause: 暂停")
-            mediaPlayer?.pause()
-            Status.PAUSE
-        }
-    }
-
     fun playOrPause() {
         if (mediaPlayer != null) {
             if (mediaPlayer?.isPlaying == true) {

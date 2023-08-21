@@ -220,6 +220,7 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
             title = spHelper.getTitle();
         }
 
+        assert title != null;
         return new Song(title, uri, "");
     }
 

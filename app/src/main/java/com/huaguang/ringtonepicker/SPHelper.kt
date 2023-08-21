@@ -54,8 +54,8 @@ class SPHelper private constructor(context: Context) {
         return sp.getString("ringtone_uri", "") ?: ""
     }
 
-    fun getTitle(): String {
-        return sp.getString("ringtone_title", "") ?: ""
+    fun getTitle(): String? { // 如果为空，就是没有存档标题
+        return sp.getString("ringtone_title", "")
     }
 
     /**
