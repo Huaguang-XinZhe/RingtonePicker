@@ -61,9 +61,9 @@ class SPHelper private constructor(context: Context) {
     /**
      * 在应用的 ”安装-卸载“ 生命周期内只执行一次！
      */
-    fun doOnce(callback: () -> Unit) {
+    fun doOnce(action: () -> Unit) {
         if (!getFlag("executed")) {
-            callback()
+            action()
             setFlag("executed", true)
         }
     }

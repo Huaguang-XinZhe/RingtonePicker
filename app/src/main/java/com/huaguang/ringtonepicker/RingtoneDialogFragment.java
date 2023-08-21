@@ -1,6 +1,7 @@
 package com.huaguang.ringtonepicker;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
@@ -14,6 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.huaguang.ringtonepicker.databinding.FragmentRingtoneDialogBinding;
 import com.permissionx.guolindev.PermissionX;
@@ -53,6 +55,12 @@ public class RingtoneDialogFragment extends BottomSheetDialogFragment {
             Log.i("铃声选择", "onCreate: 初始化播放器");
         }
 
+    }
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        return new BottomSheetDialog(requireContext(), R.style.CustomBottomSheetDialogTheme);
     }
 
     @Nullable
