@@ -14,11 +14,11 @@
 
 **底部对话框**：
 
-<img src="https://image-bed-1315938829.cos.ap-nanjing.myqcloud.com/6a9eb087d958d9b26763e7c2590a60e.jpg" alt="6a9eb087d958d9b26763e7c2590a60e" width="200";" />
+<img src="https://image-bed-1315938829.cos.ap-nanjing.myqcloud.com/6a9eb087d958d9b26763e7c2590a60e.jpg" alt="6a9eb087d958d9b26763e7c2590a60e" width="300"/>
 
 **选择列表**：
 
-<img src="https://image-bed-1315938829.cos.ap-nanjing.myqcloud.com/d06b17434607bc1ce82bcc8d417668f.jpg" alt="d06b17434607bc1ce82bcc8d417668f" style="zoom:33%;" />
+<img src="https://image-bed-1315938829.cos.ap-nanjing.myqcloud.com/d06b17434607bc1ce82bcc8d417668f.jpg" alt="d06b17434607bc1ce82bcc8d417668f" width="300"/>
 
 --
 
