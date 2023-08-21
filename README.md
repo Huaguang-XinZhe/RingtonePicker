@@ -14,7 +14,7 @@
 
 **底部对话框**：
 
-<img src="https://image-bed-1315938829.cos.ap-nanjing.myqcloud.com/6a9eb087d958d9b26763e7c2590a60e.jpg" alt="6a9eb087d958d9b26763e7c2590a60e" style="zoom:33%;" />
+<img src="https://image-bed-1315938829.cos.ap-nanjing.myqcloud.com/6a9eb087d958d9b26763e7c2590a60e.jpg" alt="6a9eb087d958d9b26763e7c2590a60e" width="200";" />
 
 **选择列表**：
 
